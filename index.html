@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For U guggu</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #050508; }
+        canvas { display: block; width: 100vw; height: 100vh; background: radial-gradient(circle at bottom, #1b1b2f 0%, #050508 100%); }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const TYPES = ['sunflower', 'pink_daisy', 'yellow_cosmos', 'soft_rose'];
+
+        class Flower {
+            constructor(x) {
+                this.x = x;
+                this.targetY = canvas.height - (Math.random() * (canvas.height * 0.4) + 140);
+                this.currentY = canvas.height;
+                this.type = TYPES[Math.floor(Math.random() * TYPES.length)];
+                this.curve = (Math.random() - 0.5) * 60;
+                this.bloom = 0;
+                this.size = Math.random() * 8 + 14;
+            }
+
+            update() {
+                if (this.currentY > this.targetY) {
+                    this.currentY -= 2.5;
+                } else if (this.bloom < 1) {
+                    this.bloom += 0.02;
+                }
+            }
+
+            draw() {
+                const growth = (canvas.height - this.currentY) / (canvas.height - this.targetY);
+                const tipX = this.x + (this.curve * growth);
+
+                // Organic Stem
+                ctx.beginPath();
+                ctx.moveTo(this.x, canvas.height);
+                ctx.quadraticCurveTo(this.x + this.curve * 0.3, (canvas.height + this.currentY) / 2, tipX, this.currentY);
+                ctx.strokeStyle = '#3a5a40';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Leaves
+                if (growth > 0.4) {
+                    ctx.fillStyle = '#3a5a40';
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + this.curve * 0.2, canvas.height - (canvas.height - this.targetY) * 0.4, 12, 4, 0.4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Petals
+                if (this.bloom > 0) {
+                    ctx.save();
+                    ctx.translate(tipX, this.currentY);
+                    const b = this.bloom;
+
+                    if (this.type === 'sunflower') {
+                        for (let i = 0; i < 16; i++) {
+                            ctx.rotate((Math.PI * 2) / 16);
+                            ctx.fillStyle = '#ffb703';
+                            ctx.beginPath();
+                            ctx.ellipse(0, this.size * b, 3 * b, this.size * b, 0, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        ctx.beginPath();
+                        ctx.arc(0, 0, (this.size * 0.4) * b, 0, Math.PI * 2);
+                        ctx.fillStyle = '#3d0c02';
+                        ctx.fill();
+                    } else {
+                        const color = this.type === 'pink_daisy' ? '#ff758f' : '#ff9770';
+                        for (let i = 0; i < 8; i++) {
+                            ctx.rotate((Math.PI * 2) / 8);
+                            ctx.fillStyle = color;
+                            ctx.beginPath();
+                            ctx.ellipse(0, (this.size * 0.8) * b, 5 * b, (this.size * 0.8) * b, 0, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 4 * b, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ffe66d';
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+            }
+        }
+
+        const flowers = [];
+        for (let i = 0; i < 40; i++) {
+            flowers.push(new Flower(Math.random() * canvas.width));
+        }
+
+        function drawHeader() {
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            // Responsive font sizing based on screen width
+            const fontSize = Math.min(canvas.width * 0.08, 42);
+            ctx.font = `600 ${fontSize}px sans-serif`;
+
+            // Neon Glow effect
+            ctx.shadowColor = '#ff4d6d';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#ffffff';
+
+            // Position at top center
+            ctx.fillText('For U guggu💞', canvas.width / 2, canvas.height * 0.08);
+            ctx.restore();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawHeader();
+            flowers.forEach(f => { f.update(); f.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
